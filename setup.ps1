@@ -1,4 +1,4 @@
-#Useful commands
+#Useful commands go here
 # & "C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe" -q #query nvidia driver
 
 Write-Host -foregroundcolor red "
