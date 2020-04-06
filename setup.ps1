@@ -1,11 +1,6 @@
 #Useful commands go here
 # & "C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe" -q #query nvidia driver
 
-Write-Host -foregroundcolor red "
-THIS IS GALAXY.
-We are installing all the needed essentials to make this machine stream games
-"
-
 #Predefined Vars
 $autoLoginUser = "Administrator" #Username to be used in autologin (AWS uses Administrator)
 $path = "C:\ParsecTemp" #Path for installer
@@ -14,12 +9,8 @@ $path = "C:\ParsecTemp" #Path for installer
 
 function install-ssm {
     Write-Host "Installing AWS SSM"
-    Invoke-WebRequest `
-        https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/windows_amd64/AmazonSSMAgentSetup.exe `
-        -OutFile $path\SSMAgent_latest.exe | Unblock-File
-    Start-Process `
-        -FilePath $path\SSMAgent_latest.exe `
-        -ArgumentList "/S"
+    (New-Object System.Net.WebClient).DownloadFile("https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/windows_amd64/AmazonSSMAgentSetup.exe", "$path\SSMAgent_latest.exe") | Unblock-File
+    Start-Process -FilePath "$path\SSMAgent_latest.exe" -ArgumentList "/S"
 }
 
 # Reference: https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/install-nvidia-driver.html#nvidia-gaming-driver
@@ -439,8 +430,8 @@ function audio-driver {
     Set-Service -Name audiosrv -StartupType Automatic
 
     #Shit who knows. Wait for the above update manager to do it's magic and then remove start up for next boot
-    Write-Output "45s for Audio Drivers to finalize"
-    Start-Sleep -s 45
+    Write-Output "120s for Audio Drivers to finalize"
+    Start-Sleep -s 120
 
     #This is to remove autostartup of razer window : MUST ADD
     if (((Get-Item -Path HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Run).GetValue("Razer Synapse") -ne $null) -eq $true) 
@@ -455,7 +446,10 @@ function clean-up {
     Remove-Item -Path $path -force -Recurse
 }
 
-
+Write-Host -foregroundcolor red "
+THIS IS GALAXY.
+We are installing all the needed essentials to make this machine stream games
+"
 
 create-directories
 
@@ -477,6 +471,7 @@ enhance-pointer-precision
 enable-mousekeys
 set-time
 disable-server-manager
+
 install-parsec
 #Server2019Controller #USE THIS TO EXTRACT LATER: https://social.technet.microsoft.com/Forums/office/en-US/f5bd7dd6-36f4-4309-8dd5-7d746cb161d2/silent-install-of-xbox-360-controller-drivers?forum=w7itproinstall
 disable-devices
