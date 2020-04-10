@@ -19,6 +19,9 @@ function windows-auto-login {
     }
 }
 
+function parsec-auto-login {
+    
+}
 
 Write-Host -foregroundcolor red "
 THIS IS GALAXY.
@@ -27,3 +30,4 @@ We are installing all the needed essentials to make this machine stream games
 
 #We are assuming that create-directories was run in setup.ps1
 windows-auto-login
+parsec-auto-login
