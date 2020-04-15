@@ -58,20 +58,26 @@ function download-mini-parsec {
 }
 
 function extract-mini-parsec {
-    Expand-Archive -Path $path\miniParsec.zip -DestinationPath $path\miniParsec\
+    Expand-Archive -Path $path\miniParsec.zip -DestinationPath $path
 }
 
 Function create-mini-parsec-service {
     #Creates Mini Parsec Service
     Write-host "Creating Mini Parsec Service"
-    & sc.exe Create "Mini Parsec" binPath= "$path\miniParsec\miniParsec.exe (gc $path\parsec-session-id.txt)" start= "auto" | Out-Null
+    & sc.exe Create "Mini Parsec" binPath= "$path\miniParsec.exe (gc $path\parsec-session-id.txt)" start= "auto" | Out-Null
     sc.exe Start 'Mini Parsec' | Out-Null
+}
+
+function setup-mini-parsec {
+    New-ItemProperty -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Run -Name "Mini Parsec" -Value "$path\miniParsec.exe (gc $path\parsec-session-id.txt | Out-String)" | Out-Null
+    $parsecSessionId = (gc $path\parsec-session-id.txt | Out-String);
+    Start-Process -FilePath "$path\miniParsec.exe" -ArgumentList "$parsecSessionId"
 }
 
 Function unblock-parsec {
     #Creates Parsec Firewall Rule in Windows Firewall
     Write-host "Creating Parsec Firewall Rule"
-    New-NetFirewallRule -DisplayName "Parsec" -Direction Inbound -Program "$path\miniParsec\miniParsec.exe" -Profile Private,Public -Action Allow -Enabled True | Out-Null
+    New-NetFirewallRule -DisplayName "Parsec" -Direction Inbound -Program "$path\miniParsec.exe" -Profile Private,Public -Action Allow -Enabled True | Out-Null
 }
 
 Write-Host -foregroundcolor red "
@@ -81,7 +87,7 @@ We are installing all the needed essentials to make this machine stream games
 
 #We are assuming that create-directories was run in setup.ps1
 #windows-auto-login
-parsec-save-session-id
-download-mini-parsec
-extract-mini-parsec
-create-mini-parsec-service
+#parsec-save-session-id
+#download-mini-parsec
+#extract-mini-parsec
+setup-mini-parsec
