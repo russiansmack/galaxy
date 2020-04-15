@@ -22,7 +22,7 @@ function windows-auto-login {
 
 #let's get our parsec session id
 #make sessions persist etc on the backend
-function parsec-get-session-id {
+function __parsec-get-session-id {
     $parsecSessionId = '';
 
     $apiKey = "BkeFd7ROYH5rh5hmtnoXp2BFuPgG6Z7sa6G2JadX"
@@ -48,18 +48,30 @@ function parsec-get-session-id {
 }
 
 function parsec-save-session-id {
-    $parsecSessionId = parsec-get-session-id
-
+    $parsecSessionId = __parsec-get-session-id
     Write-Output $parsecSessionId | Out-File -FilePath $path\parsec-session-id.txt -Encoding ascii
 }
 
 #get our parsec version from s3
 function download-mini-parsec {
-
+    Read-S3Object -BucketName demo-parsec -Key miniParsec.zip -File $path\miniParsec.zip
 }
 
-function start-mini-parsec-daemon {
-#    .\host.exe (gc $path\parsec-session-id.txt)
+function extract-mini-parsec {
+    Expand-Archive -Path $path\miniParsec.zip -DestinationPath $path\miniParsec\
+}
+
+Function create-mini-parsec-service {
+    #Creates Mini Parsec Service
+    Write-host "Creating Mini Parsec Service"
+    & sc.exe Create "Mini Parsec" binPath= "$path\miniParsec\miniParsec.exe (gc $path\parsec-session-id.txt)" start= "auto" | Out-Null
+    sc.exe Start 'Mini Parsec' | Out-Null
+}
+
+Function unblock-parsec {
+    #Creates Parsec Firewall Rule in Windows Firewall
+    Write-host "Creating Parsec Firewall Rule"
+    New-NetFirewallRule -DisplayName "Parsec" -Direction Inbound -Program "$path\miniParsec\miniParsec.exe" -Profile Private,Public -Action Allow -Enabled True | Out-Null
 }
 
 Write-Host -foregroundcolor red "
@@ -70,3 +82,6 @@ We are installing all the needed essentials to make this machine stream games
 #We are assuming that create-directories was run in setup.ps1
 #windows-auto-login
 parsec-save-session-id
+download-mini-parsec
+extract-mini-parsec
+create-mini-parsec-service
