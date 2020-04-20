@@ -20,9 +20,17 @@ function windows-auto-login {
     }
 }
 
-#let's get our parsec session id
-#make sessions persist etc on the backend
-function __parsec-get-session-id {
+function __Get-MachineGUID {
+    try {
+        (Get-ItemProperty registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\ -Name MachineGuid).MachineGUID
+    }
+    catch{
+            Write-Warning "Failed to get Machine GUID from HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\"
+    }
+}
+
+#let's get our parsec magical login file
+function __parsec-download-login-file {
     $parsecSessionId = '';
 
     $apiKey = "BkeFd7ROYH5rh5hmtnoXp2BFuPgG6Z7sa6G2JadX"
@@ -31,7 +39,11 @@ function __parsec-get-session-id {
     $retries = 0
     while (($parsecSessionId -eq '') -and ($retries -lt 5)) {
         Start-Sleep -s (10*$retries)
-        $parsecSessionId = Invoke-RestMethod -Method Get -Uri $resource -Headers @{ "x-api-key" = $apiKey } 
+        $headers =  @{ 
+            "x-api-key" = $apiKey 
+            "winguid" = __Get-MachineGUID
+        }
+        $parsecSessionId = Invoke-RestMethod -Method Get -Uri $resource -Headers $headers
         Write-Host "Getting Parsec Key - Retry: $retries"
         $retries++
     }
@@ -47,37 +59,10 @@ function __parsec-get-session-id {
     }
 }
 
-function parsec-save-session-id {
-    $parsecSessionId = __parsec-get-session-id
-    Write-Output $parsecSessionId | Out-File -FilePath $path\parsec-session-id.txt -Encoding ascii
-}
-
-#get our parsec version from s3
-function download-mini-parsec {
-    Read-S3Object -BucketName demo-parsec -Key miniParsec.zip -File $path\miniParsec.zip
-}
-
-function extract-mini-parsec {
-    Expand-Archive -Path $path\miniParsec.zip -DestinationPath $path
-}
-
-Function create-mini-parsec-service {
-    #Creates Mini Parsec Service
-    Write-host "Creating Mini Parsec Service"
-    & sc.exe Create "Mini Parsec" binPath= "$path\miniParsec.exe (gc $path\parsec-session-id.txt)" start= "auto" | Out-Null
-    sc.exe Start 'Mini Parsec' | Out-Null
-}
-
-function setup-mini-parsec {
-    New-ItemProperty -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Run -Name "Mini Parsec" -Value "$path\miniParsec.exe (gc $path\parsec-session-id.txt | Out-String)" | Out-Null
-    $parsecSessionId = (gc $path\parsec-session-id.txt | Out-String);
-    Start-Process -FilePath "$path\miniParsec.exe" -ArgumentList "$parsecSessionId"
-}
-
-Function unblock-parsec {
-    #Creates Parsec Firewall Rule in Windows Firewall
-    Write-host "Creating Parsec Firewall Rule"
-    New-NetFirewallRule -DisplayName "Parsec" -Direction Inbound -Program "$path\miniParsec.exe" -Profile Private,Public -Action Allow -Enabled True | Out-Null
+#TOFIX: This has a lot of variables in path that might change - not good
+function parsec-save-login-file {
+    $parsecSessionId = __parsec-download-login-file
+    Write-Output $parsecSessionId | Out-File -FilePath "C:\Users\Administrator\AppData\Roaming\Parsec\user.bin" -Encoding ascii
 }
 
 Write-Host -foregroundcolor red "
@@ -86,8 +71,5 @@ We are installing all the needed essentials to make this machine stream games
 "
 
 #We are assuming that create-directories was run in setup.ps1
-#windows-auto-login
-#parsec-save-session-id
-#download-mini-parsec
-#extract-mini-parsec
-setup-mini-parsec
+windows-auto-login
+parsec-save-login-file
