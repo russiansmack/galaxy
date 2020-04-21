@@ -73,3 +73,7 @@ We are installing all the needed essentials to make this machine stream games
 #We are assuming that create-directories was run in setup.ps1
 windows-auto-login
 parsec-save-login-file
+
+#This is unfortunately required as autologin initializes only on reboot
+#In future there will be a separate autologin account and this won't be required
+Restart-Computer
