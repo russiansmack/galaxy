@@ -392,23 +392,6 @@ Function gpu-detector {
     }
 }
 
-#enable auto login
-function auto-login { 
-    (New-Object System.Net.WebClient).DownloadFile("https://download.sysinternals.com/files/AutoLogon.zip", "$path\Autologon.zip") | Unblock-File
-    Expand-Archive "$path\Autologon.zip" -DestinationPath "$path" -Force
-    
-    $token = Invoke-RestMethod -Headers @{"X-aws-ec2-metadata-token-ttl-seconds" = "21600"} -Method PUT -Uri http://169.254.169.254/latest/api/token
-    $instanceId = Invoke-RestMethod -Headers @{"X-aws-ec2-metadata-token" = $token} -Method GET -Uri http://169.254.169.254/latest/meta-data/instance-id
-    Read-S3Object -BucketName demo-parsec -Key herpderp.pem -File $path\herpderp.pem
-    $winPass = Get-EC2PasswordData -InstanceId $instanceId -PemFile $path\herpderp.pem
-    $autoLoginP = Start-Process "$path\Autologon.exe" -ArgumentList "/accepteula", $autoLoginUser, $env:Computername, $winPass -PassThru -Wait
-    If ($autoLoginP.ExitCode -eq 0) {
-        Write-Host "AutoLogin Enabled" -ForegroundColor green 
-    } Else {
-         Write-Host "AutoLogin ERROR" -ForegroundColor red 
-    }
-}
-
 #Audio Drivers
 function audio-driver {
     Write-Output "Installing audio driver"
@@ -438,6 +421,25 @@ function audio-driver {
     {Remove-ItemProperty -path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Run" -Name "Razer Synapse"
     "Removed Startup Item from Razer Synapse"}
     Else {"Razer Startup Item not present"}
+}
+
+#creating a separate user to autologin and persist with ami
+function new-autostart {
+    $user = 'Gamer'
+    $pass = 'CoolP455'
+    # Create the local user
+    net user $user $pass /ADD /expires:never
+
+    # Set the above local user to not have an expiring password
+    Get-WmiObject Win32_UserAccount -filter "LocalAccount=True"| Where-Object {$_.name -eq $user} | Set-WmiInstance -Arguments @{PasswordExpires=$false}
+
+    # Create registry keys for local login
+    New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "DefaultUserName" -PropertyType "String" -Value $user
+    New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "DefaultPassword" -PropertyType "String" -Value $pass
+    New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "DefaultDomainName" -PropertyType "String" -Value '.\'
+    New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "AutoAdminLogon" -PropertyType "String" -Value '1'
+
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "AutoLogonSID"
 }
 
 #Cleanup
@@ -476,7 +478,6 @@ install-parsec
 #Server2019Controller #USE THIS TO EXTRACT LATER: https://social.technet.microsoft.com/Forums/office/en-US/f5bd7dd6-36f4-4309-8dd5-7d746cb161d2/silent-install-of-xbox-360-controller-drivers?forum=w7itproinstall
 disable-devices
 #gpu-detector
-auto-login
 audio-driver
 #clean-up
 Write-Host "Script ended. It's over. Stop looking at me." -ForegroundColor Green
