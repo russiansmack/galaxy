@@ -266,7 +266,7 @@ Function PreParsec
 {
     Write-Host "Installing PreParsec"
     ExtractInstallFiles
-    #InstallViGEmBus
+    InstallViGEmBus
     CreateFireWallRule
     CreateParsecService
     DownloadParsecServiceManager
@@ -322,7 +322,7 @@ Function Server2019Controller {
         "Detected Windows Server 2019, downloading Xbox Accessories 1.2 to enable controller support"
         (New-Object System.Net.WebClient).DownloadFile("http://download.microsoft.com/download/6/9/4/69446ACF-E625-4CCF-8F56-58B589934CD3/Xbox360_64Eng.exe", "$path\Drivers\Xbox360_64Eng.exe") | Unblock-File
         Write-Host "In order to use a controller, you need to install Microsoft Xbox Accessories " -ForegroundColor Red
-        Start-Process $path\Drivers\Xbox360_64Eng.exe -Wait
+        Start-Process $path\Drivers\Xbox360_64Eng.exe /q
     }
 }
 
@@ -475,7 +475,7 @@ set-time
 disable-server-manager
 
 install-parsec
-#Server2019Controller #USE THIS TO EXTRACT LATER: https://social.technet.microsoft.com/Forums/office/en-US/f5bd7dd6-36f4-4309-8dd5-7d746cb161d2/silent-install-of-xbox-360-controller-drivers?forum=w7itproinstall
+Server2019Controller #USE THIS TO EXTRACT LATER: https://social.technet.microsoft.com/Forums/office/en-US/f5bd7dd6-36f4-4309-8dd5-7d746cb161d2/silent-install-of-xbox-360-controller-drivers?forum=w7itproinstall
 disable-devices
 #gpu-detector
 audio-driver
