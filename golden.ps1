@@ -13,6 +13,11 @@ function install-ssm {
     Start-Process -FilePath "$path\SSMAgent_latest.exe" -ArgumentList "/S"
 }
 
+function install-choco {
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    choco feature enable -n allowGlobalConfirmation
+}
+
 # Reference: https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/install-nvidia-driver.html#nvidia-gaming-driver
 # Notes: Required s3.getobject, s3.list-objects api calls
 function download-nvidia {
@@ -457,6 +462,7 @@ create-directories
 
 #Golden image start
 install-ssm
+install-choco
 #download-nvidia
 #install-nvidia
 #Golden image end

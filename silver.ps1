@@ -65,6 +65,7 @@ function parsec-save-login-file {
     Write-Output $parsecSessionId | Out-File -FilePath "C:\Users\Administrator\AppData\Roaming\Parsec\user.bin" -Encoding ascii
 }
 
+
 Write-Host -foregroundcolor red "
 THIS IS GALAXY.
 We are installing all the needed essentials to make this machine stream games
@@ -73,6 +74,39 @@ We are installing all the needed essentials to make this machine stream games
 #We are assuming that create-directories was run in setup.ps1
 windows-auto-login
 parsec-save-login-file
+
+
+##TOFIX: DELETE THIS install-choco ONCE YOU CREATE A NEW GOLD IMAGE
+function install-choco {
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    choco feature enable -n allowGlobalConfirmation
+}
+install-choco
+
+###Launcher Installs###
+function install-origin {
+    choco install origin
+}
+
+function install-battlenet {
+    #https://www.battle.net/download/getInstallerForGame?os=win&locale=enUS&version=LIVE&gameProgram=BATTLENET_APP
+    #https://www.blizzard.com/download/confirmation?platform=windows&locale=en_SG&product=codwz
+    #https://us.battle.net/download/getInstaller?os=win&installer=Modern-Warfare-Setup.exe
+
+    #game
+    #mediadir
+    #P
+    #selectlang
+    #setupdir
+    #transport
+    #tomepath
+    #BTS
+
+}
+
+
+install-origin
+
 
 #This is unfortunately required as autologin initializes only on reboot
 #In future there will be a separate autologin account and this won't be required
