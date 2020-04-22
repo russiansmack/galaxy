@@ -101,12 +101,18 @@ function install-battlenet {
     #transport
     #tomepath
     #BTS
+    #Downloading_Setup
+    #Installing_Client
+    #Options_Location_Header
+    #Uninstall_Description_Win
+    #.\Battle.net-Setup.exe --installpath="C:/Boring"
 
+    (New-Object System.Net.WebClient).DownloadFile("https://www.battle.net/download/getInstallerForGame?os=win&locale=enUS&version=LIVE&gameProgram=BATTLENET_APP", "$path\Battle-net.exe") | Unblock-File
+    Start-Process "$path\Battle-net.exe" -ArgumentList "--installpath='C:/Battle.net'" -PassThru -Wait
 }
 
-
 install-origin
-
+install-battlenet
 
 #This is unfortunately required as autologin initializes only on reboot
 #In future there will be a separate autologin account and this won't be required
