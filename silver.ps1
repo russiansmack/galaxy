@@ -68,6 +68,13 @@ function parsec-save-login-file {
 #TODO: Add uniq hostname IDs etc here..?
 function parsec-save-settings {
 
+    #These settings could be interesting
+    #encoder_bitrate = 100
+    #encoder_h265 = 0
+    #encoder_min_bitrate = 245
+    #encoder_max_qp = 30
+    #Source: https://www.reddit.com/r/cloudygamer/comments/evsfoi/there_are_hidden_advanced_settings_in_parsec_and/
+
     $parsecOptions = @"
 app_host=1
 app_run_level = 3
@@ -98,26 +105,8 @@ install-choco
 ###Launcher Installs###
 
 function install-battlenet {
-    #https://www.battle.net/download/getInstallerForGame?os=win&locale=enUS&version=LIVE&gameProgram=BATTLENET_APP
-    #https://www.blizzard.com/download/confirmation?platform=windows&locale=en_SG&product=codwz
-    #https://us.battle.net/download/getInstaller?os=win&installer=Modern-Warfare-Setup.exe
-
-    #game
-    #mediadir
-    #P
-    #selectlang
-    #setupdir
-    #transport
-    #tomepath
-    #BTS
-    #Downloading_Setup
-    #Installing_Client
-    #Options_Location_Header
-    #Uninstall_Description_Win
-    #.\Battle.net-Setup.exe --installpath="C:/Boring"
-
     (New-Object System.Net.WebClient).DownloadFile("https://www.battle.net/download/getInstallerForGame?os=win&locale=enUS&version=LIVE&gameProgram=BATTLENET_APP", "$path\Battle-net.exe") | Unblock-File
-    Start-Process "$path\Battle-net.exe" -ArgumentList "--installpath='C:/Battle.net'"
+    Start-Process "$path\Battle-net.exe" -ArgumentList "--installpath=C:/Battle.net --locale=enUS"
 }
 
 function install-origin {
