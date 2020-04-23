@@ -113,9 +113,15 @@ function install-origin {
     choco install origin
 }
 
+function install-epicgames {
+    choco install epicgameslauncher
+}
+
 install-battlenet
 install-origin
+install-epicgames
 
 #This is unfortunately required as autologin initializes only on reboot
 #In future there will be a separate autologin account and this won't be required
+Start-Sleep -Seconds 5
 Restart-Computer
