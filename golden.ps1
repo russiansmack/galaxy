@@ -263,8 +263,6 @@ function install-parsec
     PreParsec
     New-ItemProperty -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Run -Name "Parsec.App.0" -Value "C:\Program Files\Parsec\parsecd.exe" | Out-Null
     Start-Process -FilePath "C:\Program Files\Parsec\parsecd.exe"
-    #TODO: TEST THAT THIS WILL WORK
-    #Write-Output "app_host=1" | Out-File -FilePath $ENV:AppData\Parsec\config.txt -Encoding ascii
 }
 
 Function PreParsec 
