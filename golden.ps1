@@ -36,14 +36,14 @@ function Install-Base {
 
     Write-Host "Installing Chrome"
     cinst googlechrome -ignore-checksums
-
-    Write-Output "Installing .Net 3.5"
+    
+    Write-Host "Installing DirectX Redist 2010"
     cinst directx
 
     Write-Host "Installing Direct Play"
     Install-WindowsFeature Direct-Play | Out-Null
     
-    Write-Host "Installing DirectX Redist 2010"
+    Write-Host "Installing .Net 3.5"
     Install-WindowsFeature Net-Framework-Core | Out-Null
 }
 
@@ -125,7 +125,7 @@ function Install-AudioDriver {
     Write-Output "Installing audio driver"
     #Download Audio driver extracted from Razer Surround Sound
     Read-S3Object -BucketName demo-parsec -Key aws_audio.zip -File $path\aws_audio.zip
-    Expand-Archive -Path $path\aws_audio.zip -DestinationPath $path\aws_audio\
+    Expand-Archive -Path $path\aws_audio.zip -DestinationPath $path -Force
     #Installing virtual sound device
     devcon64 install $path\aws_audio\rzsurroundvad.inf *rzsurroundvad
     #Initializing Audio Service
