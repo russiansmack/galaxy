@@ -258,14 +258,14 @@ function disable-server-manager {
 }
 
 #Apps that require human intervention
-function install-parsec
+function Install-Parsec
 {
-    PreParsec
+    Pre-Parsec
     New-ItemProperty -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Run -Name "Parsec.App.0" -Value "C:\Program Files\Parsec\parsecd.exe" | Out-Null
     Start-Process -FilePath "C:\Program Files\Parsec\parsecd.exe"
 }
 
-Function PreParsec 
+Function Pre-Parsec 
 {
     Write-Host "Installing PreParsec"
     ExtractInstallFiles
@@ -445,6 +445,25 @@ function new-autostart {
     Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "AutoLogonSID"
 }
 
+function Install-Chocolatey {
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    choco feature enable -n allowGlobalConfirmation
+}
+
+###Launcher Installs###
+function Install-Battlenet {
+    (New-Object System.Net.WebClient).DownloadFile("https://www.battle.net/download/getInstallerForGame?os=win&locale=enUS&version=LIVE&gameProgram=BATTLENET_APP", "$path\Battle-net.exe") | Unblock-File
+    Start-Process "$path\Battle-net.exe" -ArgumentList "--installpath=C:/Battle.net --locale=enUS"
+}
+
+function Install-Origin {
+    choco install origin
+}
+
+function Install-Epicgames {
+    choco install epicgameslauncher
+}
+
 #Cleanup
 function clean-up {
     Write-Output "Cleaning up!"
@@ -460,7 +479,8 @@ create-directories
 
 #Golden image start
 install-ssm
-install-choco
+Install-Chocolatey
+
 #download-nvidia
 #install-nvidia
 #Golden image end
@@ -477,8 +497,10 @@ enhance-pointer-precision
 enable-mousekeys
 set-time
 disable-server-manager
-
-install-parsec
+Install-Battlenet
+Install-Origin
+Install-Epicgames
+Install-Parsec
 Server2019Controller #USE THIS TO EXTRACT LATER: https://social.technet.microsoft.com/Forums/office/en-US/f5bd7dd6-36f4-4309-8dd5-7d746cb161d2/silent-install-of-xbox-360-controller-drivers?forum=w7itproinstall
 disable-devices
 #gpu-detector
