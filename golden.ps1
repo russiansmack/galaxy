@@ -157,10 +157,6 @@ We are installing all the needed essentials to make this machine stream games
 Install-SSM
 Install-Chocolatey
 
-#Devices
-Disable-Devices
-Install-AudioDriver
-
 #Essentials
 Install-Base
 
@@ -173,19 +169,21 @@ Disable-Lock
 Set-Time
 Disable-ServerManager
 
+#Devices
+Disable-Devices
+Install-AudioDriver
+
 #Launchers
 Install-Battlenet
 Install-Origin
 Install-EpicGames
 
-#Streaming
+#Streaming Tech
 Install-Parsec
 
 Remove-TempFolder
 
 Write-Host "Script ended. It's over. Stop looking at me." -ForegroundColor Green
-
-
 
 
 #TODO: Maybe it's already installed with new parsec installer? Test controller
