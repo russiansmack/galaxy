@@ -123,9 +123,13 @@ function Install-Parsec
 #Audio Drivers
 function Install-AudioDriver {
     Write-Output "Installing audio driver"
+    #Download Audio driver extracted from Razer Surround Sound
     Read-S3Object -BucketName demo-parsec -Key aws_audio.zip -File $path\aws_audio.zip
     Expand-Archive -Path $path\aws_audio.zip -DestinationPath $path\aws_audio\
+    #Installing virtual sound device
     devcon64 install $path\aws_audio\rzsurroundvad.inf *rzsurroundvad
+    #Initializing Audio Service
+    Set-Service -Name audiosrv -StartupType Automatic
 }
 
 ###Launcher Installs###
