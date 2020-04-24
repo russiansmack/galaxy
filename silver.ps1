@@ -99,31 +99,6 @@ windows-auto-login
 parsec-save-login-file
 parsec-save-settings
 
-##TOFIX: DELETE THIS install-choco ONCE YOU CREATE A NEW GOLD IMAGE
-function install-choco {
-    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-    choco feature enable -n allowGlobalConfirmation
-}
-install-choco
-
-###Launcher Installs###
-
-function Install-Battlenet {
-    (New-Object System.Net.WebClient).DownloadFile("https://www.battle.net/download/getInstallerForGame?os=win&locale=enUS&version=LIVE&gameProgram=BATTLENET_APP", "$path\Battle-net.exe") | Unblock-File
-    Start-Process "$path\Battle-net.exe" -ArgumentList "--installpath=C:/Battle.net --locale=enUS"
-}
-
-function Install-Origin {
-    choco install origin
-}
-
-function Install-Epicgames {
-    choco install epicgameslauncher
-}
-
-Install-Battlenet
-Install-Origin
-Install-Epicgames
 
 #This is unfortunately required as autologin initializes only on reboot
 #In future there will be a separate autologin account and this won't be required
