@@ -13,6 +13,11 @@ function install-ssm {
     Start-Process -FilePath "$path\SSMAgent_latest.exe" -ArgumentList "/S"
 }
 
+function install-choco {
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    choco feature enable -n allowGlobalConfirmation
+}
+
 # Reference: https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/install-nvidia-driver.html#nvidia-gaming-driver
 # Notes: Required s3.getobject, s3.list-objects api calls
 function download-nvidia {
@@ -147,7 +152,7 @@ function download-resources {
     Write-Host "Downloading Parsec"
     (New-Object System.Net.WebClient).DownloadFile("https://builds.parsecgaming.com/package/parsec-windows.exe", "$path\Apps\parsec-windows.exe") | Unblock-File
     Write-Host "Downloading Chrome"
-    (New-Object System.Net.WebClient).DownloadFile("https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi", "$path\Apps\googlechromestandaloneenterprise64.msi") | Unblock-File
+    (New-Object System.Net.WebClient).DownloadFile("https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi", "$path\Apps\googlechromestandaloneenterprise64.msi") | Unblock-File #TODO: choco install googlechrome -ignore-checksums
 }
 
 function install-7zip {
@@ -258,15 +263,13 @@ function install-parsec
     PreParsec
     New-ItemProperty -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Run -Name "Parsec.App.0" -Value "C:\Program Files\Parsec\parsecd.exe" | Out-Null
     Start-Process -FilePath "C:\Program Files\Parsec\parsecd.exe"
-    #TODO: TEST THAT THIS WILL WORK
-    #Write-Output "app_host=1" | Out-File -FilePath $ENV:AppData\Parsec\config.txt -Encoding ascii
 }
 
 Function PreParsec 
 {
     Write-Host "Installing PreParsec"
     ExtractInstallFiles
-    #InstallViGEmBus
+    InstallViGEmBus
     CreateFireWallRule
     CreateParsecService
     DownloadParsecServiceManager
@@ -322,7 +325,7 @@ Function Server2019Controller {
         "Detected Windows Server 2019, downloading Xbox Accessories 1.2 to enable controller support"
         (New-Object System.Net.WebClient).DownloadFile("http://download.microsoft.com/download/6/9/4/69446ACF-E625-4CCF-8F56-58B589934CD3/Xbox360_64Eng.exe", "$path\Drivers\Xbox360_64Eng.exe") | Unblock-File
         Write-Host "In order to use a controller, you need to install Microsoft Xbox Accessories " -ForegroundColor Red
-        Start-Process $path\Drivers\Xbox360_64Eng.exe -Wait
+        Start-Process $path\Drivers\Xbox360_64Eng.exe /q
     }
 }
 
@@ -457,6 +460,7 @@ create-directories
 
 #Golden image start
 install-ssm
+install-choco
 #download-nvidia
 #install-nvidia
 #Golden image end
@@ -475,7 +479,7 @@ set-time
 disable-server-manager
 
 install-parsec
-#Server2019Controller #USE THIS TO EXTRACT LATER: https://social.technet.microsoft.com/Forums/office/en-US/f5bd7dd6-36f4-4309-8dd5-7d746cb161d2/silent-install-of-xbox-360-controller-drivers?forum=w7itproinstall
+Server2019Controller #USE THIS TO EXTRACT LATER: https://social.technet.microsoft.com/Forums/office/en-US/f5bd7dd6-36f4-4309-8dd5-7d746cb161d2/silent-install-of-xbox-360-controller-drivers?forum=w7itproinstall
 disable-devices
 #gpu-detector
 audio-driver
