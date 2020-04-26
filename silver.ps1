@@ -1,7 +1,43 @@
 #Predefined Vars
 $autoLoginUser = "Administrator" #Username to be used in autologin (AWS uses Administrator)
-$path = "C:\ParsecTemp" #Path for installer
-$parsecName = '';
+
+#Common Utility Module START
+function New-TemporaryDirectory {
+    $parent = [System.IO.Path]::GetTempPath()
+    [string] $name = [System.Guid]::NewGuid()
+    $tempPath = Join-Path $parent $name
+    Write-Host "New Temp Folder: $tempPath"
+    New-Item -ItemType Directory -Path $tempPath
+}
+
+#Cleanup
+function Remove-TemporaryDirectory {
+
+    While ( Test-Path($path) ){
+        Try{
+            Remove-Item -Path $path -Force -Recurse -ErrorAction Stop
+        }catch{
+            Write-Host "[WARNING] Clean up: File locked, trying again in 5"
+            Start-Sleep -seconds 5
+        }
+    }
+    Write-Host "[SUCCESS] The royal penis is clean, your highness!"
+}
+
+function __Test-RegistryValue {
+    # https://www.jonathanmedd.net/2014/02/testing-for-the-presence-of-a-registry-key-and-value.html
+    #This specifies parameters for this function
+    param ([parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]$Path, [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]$Value)
+    
+    try {
+        Get-ItemProperty -Path $Path | Select-Object -ExpandProperty $Value -ErrorAction Stop | Out-Null
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+#Common Utility Module END
 
 #enable auto login
 function windows-auto-login { 
@@ -79,12 +115,27 @@ function parsec-save-settings {
     server_refresh_rate=60
     #>
 
+    #SHERVIN SETTINGS AKA 25mbps
+    <#
+    app_host=1
+    app_run_level = 3
+    encoder_h265 = 1
+    encoder_min_bitrate = 15
+    encoder_bitrate = 25
+    server_resolution_x=1920
+    server_resolution_x=1080
+    server_refresh_rate=60
+    #>
+
     $parsecOptions = @"
-app_host=1
-app_run_level = 3
-encoder_h265 = 1
-encoder_min_bitrate = 50
-encoder_bitrate = 50
+    app_host=1
+    app_run_level = 3
+    encoder_h265 = 1
+    encoder_min_bitrate = 15
+    encoder_bitrate = 25
+    server_resolution_x=1920
+    server_resolution_x=1080
+    server_refresh_rate=60
 "@
     Write-Output $parsecOptions | Out-File -FilePath "C:\Users\Administrator\AppData\Roaming\Parsec\config.txt" -Encoding ascii
 }
@@ -94,13 +145,16 @@ THIS IS GALAXY.
 We are installing all the needed essentials to make this machine stream games
 "
 
-#We are assuming that create-directories was run in setup.ps1
+##Create Temp Folder
+$path = New-TemporaryDirectory
+
 windows-auto-login
 parsec-save-login-file
 parsec-save-settings
 
+#Clean Up
+Remove-TemporaryDirectory
 
 #This is unfortunately required as autologin initializes only on reboot
 #In future there will be a separate autologin account and this won't be required
-
 Restart-Computer

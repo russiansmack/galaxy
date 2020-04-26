@@ -1,6 +1,25 @@
-#Create Temp Folder
-$path = "C:\ParsecTemp"
-if((Test-Path -Path $path )-eq $true){} Else {New-Item -Path $path -ItemType directory | Out-Null}
+#Common Utility Module START
+function New-TemporaryDirectory {
+    $parent = [System.IO.Path]::GetTempPath()
+    [string] $name = [System.Guid]::NewGuid()
+    $tempPath = Join-Path $parent $name
+    Write-Host "New Temp Folder: $tempPath"
+    New-Item -ItemType Directory -Path $tempPath
+}
+
+#Cleanup
+function Remove-TemporaryDirectory {
+
+    While ( Test-Path($path) ){
+        Try{
+            Remove-Item -Path $path -Force -Recurse -ErrorAction Stop
+        }catch{
+            Write-Host "[WARNING] Clean up: File locked, trying again in 5"
+            Start-Sleep -seconds 5
+        }
+    }
+    Write-Host "[SUCCESS] The royal penis is clean, your highness!"
+}
 
 function __Test-RegistryValue {
     # https://www.jonathanmedd.net/2014/02/testing-for-the-presence-of-a-registry-key-and-value.html
@@ -15,6 +34,7 @@ function __Test-RegistryValue {
         return $false
     }
 }
+#Common Utility Module END
 
 function Install-SSM {
     Write-Host "Installing AWS SSM"
@@ -28,8 +48,6 @@ function Install-Chocolatey {
     choco feature enable -n allowGlobalConfirmation
 }
 
-
-#download-files-S3
 function Install-Base {
     Write-Host "Installing Devcon"
     cinst devcon.portable
@@ -146,16 +164,13 @@ function Install-EpicGames {
     cinst epicgameslauncher
 }
 
-#Cleanup
-function Remove-TempFolder {
-    Write-Output "Cleaning up!"
-    Remove-Item -Path $path -force -Recurse
-}
-
 Write-Host -foregroundcolor red "
 THIS IS GALAXY.
 We are installing all the needed essentials to make this machine stream games
 "
+
+##Create Temp Folder
+$path = New-TemporaryDirectory
 
 #Tooling
 Install-SSM
@@ -185,10 +200,10 @@ Install-EpicGames
 #Streaming Tech
 Install-Parsec
 
-Remove-TempFolder
+#Clean Up
+Remove-TemporaryDirectory
 
 Write-Host "Script ended. It's over. Stop looking at me." -ForegroundColor Green
-
 
 #TODO: Maybe it's already installed with new parsec installer? Test controller
 #Checks for Server 2019 and asks user to install Windows Xbox Accessories in order to let their controller work
