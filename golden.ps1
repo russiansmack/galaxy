@@ -3,7 +3,7 @@ function New-TemporaryDirectory {
     $parent = [System.IO.Path]::GetTempPath()
     [string] $name = [System.Guid]::NewGuid()
     $tempPath = Join-Path $parent $name
-    Write-Host "New Temp Folder: $tempPath"
+    Write-Verbose "New Temp Folder: $tempPath"
     New-Item -ItemType Directory -Path $tempPath
 }
 
@@ -14,11 +14,11 @@ function Remove-TemporaryDirectory {
         Try{
             Remove-Item -Path $path -Force -Recurse -ErrorAction Stop
         }catch{
-            Write-Host "[WARNING] Clean up: File locked, trying again in 5"
+            Write-Warning "Clean up: File locked, trying again in 5"
             Start-Sleep -seconds 5
         }
     }
-    Write-Host "[SUCCESS] The royal penis is clean, your highness!"
+    Write-Host "The royal penis is clean, your highness!"
 }
 
 function __Test-RegistryValue {
@@ -140,7 +140,7 @@ function Install-Parsec
 
 #Audio Drivers
 function Install-AudioDriver {
-    Write-Output "Installing audio driver"
+    Write-Host "Installing audio driver"
     #Download Audio driver extracted from Razer Surround Sound
     Read-S3Object -BucketName demo-parsec -Key aws_audio.zip -File $path\aws_audio.zip
     Expand-Archive -Path $path\aws_audio.zip -DestinationPath $path -Force
@@ -151,16 +151,19 @@ function Install-AudioDriver {
 }
 
 ###Launcher Installs###
-function Install-Battlenet {
+function Install-BattlenetLauncher {
+    Write-Host "Installing Battle.net Launcher"
     (New-Object System.Net.WebClient).DownloadFile("https://www.battle.net/download/getInstallerForGame?os=win&locale=enUS&version=LIVE&gameProgram=BATTLENET_APP", "$path\Battle-net.exe") | Unblock-File
     Start-Process "$path\Battle-net.exe" -ArgumentList "--installpath=C:/Battle.net --locale=enUS"
 }
 
-function Install-Origin {
+function Install-OriginLauncher {
+    Write-Host "Installing Origin Launcher"
     cinst origin
 }
 
-function Install-EpicGames {
+function Install-EpicGamesLauncher {
+    Write-Host "Installing Epic Games Launcher"
     cinst epicgameslauncher
 }
 
@@ -193,9 +196,9 @@ Disable-Devices
 Install-AudioDriver
 
 #Launchers
-Install-Battlenet
-Install-Origin
-Install-EpicGames
+Install-BattlenetLauncher
+Install-OriginLauncher
+Install-EpicGamesLauncher
 
 #Streaming Tech
 Install-Parsec

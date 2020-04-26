@@ -6,7 +6,7 @@ function New-TemporaryDirectory {
     $parent = [System.IO.Path]::GetTempPath()
     [string] $name = [System.Guid]::NewGuid()
     $tempPath = Join-Path $parent $name
-    Write-Host "New Temp Folder: $tempPath"
+    Write-Verbose "New Temp Folder: $tempPath"
     New-Item -ItemType Directory -Path $tempPath
 }
 
@@ -17,11 +17,11 @@ function Remove-TemporaryDirectory {
         Try{
             Remove-Item -Path $path -Force -Recurse -ErrorAction Stop
         }catch{
-            Write-Host "[WARNING] Clean up: File locked, trying again in 5"
+            Write-Warning "Clean up: File locked, trying again in 5"
             Start-Sleep -seconds 5
         }
     }
-    Write-Host "[SUCCESS] The royal penis is clean, your highness!"
+    Write-Host "The royal penis is clean, your highness!"
 }
 
 function __Test-RegistryValue {
@@ -40,7 +40,7 @@ function __Test-RegistryValue {
 #Common Utility Module END
 
 #enable auto login
-function windows-auto-login { 
+function Enable-WindowsAutoLogin { 
     (New-Object System.Net.WebClient).DownloadFile("https://download.sysinternals.com/files/AutoLogon.zip", "$path\Autologon.zip") | Unblock-File
     Expand-Archive "$path\Autologon.zip" -DestinationPath "$path" -Force
     
@@ -50,9 +50,9 @@ function windows-auto-login {
     $winPass = Get-EC2PasswordData -InstanceId $instanceId -PemFile $path\herpderp.pem
     $autoLoginP = Start-Process "$path\Autologon.exe" -ArgumentList "/accepteula", $autoLoginUser, $env:Computername, $winPass -PassThru -Wait
     If ($autoLoginP.ExitCode -eq 0) {
-        Write-Host "Windows AutoLogin Enabled" -ForegroundColor green 
+        Write-Host "Windows AutoLogin Enabled"
     } Else {
-        Write-Host "Windows AutoLogin ERROR" -ForegroundColor red 
+        Write-Error "Enable-WindowsAutoLogin FAILED"
     }
 }
 
@@ -66,7 +66,7 @@ function __Get-MachineGUID {
 }
 
 #let's get our parsec magical login file
-function __parsec-download-login-file {
+function __Download-ParsecLoginFile {
     $parsecSessionId = '';
 
     $apiKey = "BkeFd7ROYH5rh5hmtnoXp2BFuPgG6Z7sa6G2JadX"
@@ -74,19 +74,25 @@ function __parsec-download-login-file {
 
     $retries = 0
     while (($parsecSessionId -eq '') -and ($retries -lt 5)) {
-        Start-Sleep -s (10*$retries)
-        $headers =  @{ 
-            "x-api-key" = $apiKey 
-            "winguid" = __Get-MachineGUID
+        Start-Sleep -s (10*$retries) #anti-spam
+        Write-Verbose "Getting Parsec Key - Retry: $retries"
+
+        try{
+            $headers =  @{ 
+                "x-api-key" = $apiKey 
+                "winguid" = __Get-MachineGUID
+            }
+            $parsecSessionId = Invoke-RestMethod -Method Get -Uri $resource -Headers $headers    
+        } catch {
+            Write-Verbose "Unable to get Parsec Key - Retry: $retries"
         }
-        $parsecSessionId = Invoke-RestMethod -Method Get -Uri $resource -Headers $headers
-        Write-Host "Getting Parsec Key - Retry: $retries"
+
         $retries++
     }
 
     if($parsecSessionId -eq '')
     {
-        Write-Host "NO PARSEC SESSION KEY"
+        Write-Error "No Parsec Login File"
         return false;
     }
     else {
@@ -95,14 +101,18 @@ function __parsec-download-login-file {
     }
 }
 
-#TOFIX: This has a lot of variables in path that might change - not good
-function parsec-save-login-file {
-    $parsecSessionId = __parsec-download-login-file
-    Write-Output $parsecSessionId | Out-File -FilePath "C:\Users\Administrator\AppData\Roaming\Parsec\user.bin" -Encoding ascii
+function Install-ParsecLoginFile {
+    try {
+        (__Download-ParsecLoginFile) | Out-File -FilePath "C:\Users\$autoLoginUser\AppData\Roaming\Parsec\user.bin" -Encoding ascii
+        Write-Host "Parsec Login File Installed"
+    }
+    catch {
+        Write-Error "Install-ParsecLoginFile FAILED"
+    }
 }
 
 #TODO: Add uniq hostname IDs etc here..?
-function parsec-save-settings {
+function Install-ParsecSettings {
     #SERGEY SETTINGS - AKA 50mbps :)
     <# 
     app_host=1
@@ -137,8 +147,16 @@ function parsec-save-settings {
     server_resolution_x=1080
     server_refresh_rate=60
 "@
-    Write-Output $parsecOptions | Out-File -FilePath "C:\Users\Administrator\AppData\Roaming\Parsec\config.txt" -Encoding ascii
+    try{
+        Write-Output $parsecOptions | Out-File -FilePath "C:\Users\Administrator\AppData\Roaming\Parsec\config.txt" -Encoding ascii
+        Write-Host "Parsec Settings Installed"
+    }
+    catch {
+        Write-Error "Install-ParsecSettings FAILED"
+    }
 }
+
+Clear-Host
 
 Write-Host -foregroundcolor red "
 THIS IS GALAXY.
@@ -148,9 +166,9 @@ We are installing all the needed essentials to make this machine stream games
 ##Create Temp Folder
 $path = New-TemporaryDirectory
 
-windows-auto-login
-parsec-save-login-file
-parsec-save-settings
+Enable-WindowsAutoLogin
+Install-ParsecLoginFile
+Install-ParsecSettings
 
 #Clean Up
 Remove-TemporaryDirectory
