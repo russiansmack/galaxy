@@ -55,6 +55,7 @@ function Install-Base {
     Write-Host "Installing Chrome"
     cinst googlechrome -ignore-checksums
     
+    #Stuff for old games here
     Write-Host "Installing DirectX Redist 2010"
     cinst directx
 
