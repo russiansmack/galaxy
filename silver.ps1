@@ -138,14 +138,14 @@ function Install-ParsecSettings {
     #>
 
     $parsecOptions = @"
-    app_host=1
-    app_run_level = 3
-    encoder_h265 = 1
-    encoder_min_bitrate = 15
-    encoder_bitrate = 25
-    server_resolution_x=1920
-    server_resolution_x=1080
-    server_refresh_rate=60
+app_host=1
+app_run_level = 3
+encoder_h265 = 1
+encoder_min_bitrate = 15
+encoder_bitrate = 25
+server_resolution_x=1920
+server_resolution_x=1080
+server_refresh_rate=60
 "@
     try{
         Write-Output $parsecOptions | Out-File -FilePath "C:\Users\Administrator\AppData\Roaming\Parsec\config.txt" -Encoding ascii
