@@ -56,7 +56,7 @@ function Install-Base {
     cinst devcon.portable
 
     Write-Host "Installing Chrome"
-    cinst googlechrome -ignore-checksums
+    cinst googlechrome --ignore-checksums
     
     #Stuff for old games here
     Write-Host "Installing DirectX Redist 2010"
@@ -294,6 +294,18 @@ function Install-ParsecLoginFile {
 
 #TODO: Add uniq hostname IDs etc here..?
 function Install-ParsecSettings {
+
+    <#
+    app_host=1
+    app_run_level = 3
+    encoder_h265 = 1
+    encoder_min_bitrate = 100
+    encoder_bitrate = 200
+    server_resolution_x=3840
+    server_resolution_x=2160
+    server_refresh_rate=60
+    #>
+    
     #SERGEY SETTINGS - AKA 50mbps :)
     <# 
     app_host=1
@@ -360,3 +372,6 @@ function Install-Silver {
     Restart-Computer
 }
 
+function Show-Status {
+    Write-Host "Awesome sauce"
+}
